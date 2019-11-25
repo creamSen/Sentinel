@@ -45,7 +45,7 @@ import java.util.Map;
  * }
  * ContextUtil.exit();
  * </pre>
- *
+ * <p>
  * Above code will generate the following invocation structure in memory:
  *
  * <pre>
@@ -92,7 +92,7 @@ import java.util.Map;
  *    }
  *    ContextUtil.exit();
  * </pre>
- *
+ * <p>
  * Above code will generate the following invocation structure in memory:
  *
  * <pre>
@@ -131,7 +131,7 @@ public class NodeSelectorSlot extends AbstractLinkedProcessorSlot<Object> {
 
     @Override
     public void entry(Context context, ResourceWrapper resourceWrapper, Object obj, int count, boolean prioritized, Object... args)
-        throws Throwable {
+            throws Throwable {
         /*
          * It's interesting that we use context name rather resource name as the map key.
          *
@@ -150,17 +150,24 @@ public class NodeSelectorSlot extends AbstractLinkedProcessorSlot<Object> {
          * The answer is all {@link DefaultNode}s with same resource name share one
          * {@link ClusterNode}. See {@link ClusterBuilderSlot} for detail.
          */
+        //根据上下文的名称获取DefaultNode
+        //多线程环境下，每个线程都会创建一个context，
+        //只要资源名相同，则context的名称也相同，那么获取到的节点就相同
         DefaultNode node = map.get(context.getName());
         if (node == null) {
             synchronized (this) {
                 node = map.get(context.getName());
                 if (node == null) {
+                    //创建DefaultNode，设置运行时统计节点clusterNode为空
                     node = new DefaultNode(resourceWrapper, null);
                     HashMap<String, DefaultNode> cacheMap = new HashMap<String, DefaultNode>(map.size());
                     cacheMap.putAll(map);
                     cacheMap.put(context.getName(), node);
                     map = cacheMap;
                     // Build invocation tree
+                    //将当前node作为上下文的最后一个节点的子节点添加进去
+                    //如果context的curEntry.parent.curNode为null，则添加到entranceNode中去
+                    //否则添加到context的curEntry.parent.curNode中去
                     ((DefaultNode) context.getLastNode()).addChild(node);
                 }
 

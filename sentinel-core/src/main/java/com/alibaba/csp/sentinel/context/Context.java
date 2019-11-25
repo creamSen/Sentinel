@@ -59,20 +59,24 @@ public class Context {
     /**
      * Context name.
      */
+    //上下文名称
     private final String name;
 
     /**
      * The entrance node of current invocation tree.
      */
+    //当前链的入口节点
     private DefaultNode entranceNode;
 
     /**
      * Current processing entry.
      */
+    //当前链的正在处理的entry
     private Entry curEntry;
 
     /**
      * The origin of this context (usually indicate different invokers, e.g. service consumer name or origin IP).
+     * 此上下文的起源(通常指示不同的调用者，例如服务消费者名称或起源IP)。
      */
     private String origin = "";
 
@@ -177,6 +181,11 @@ public class Context {
      * @return the parent node of the current.
      */
     public Node getLastNode() {
+        // 如果curEntry不存在时，返回entranceNode
+        // 否则返回curEntry的lastNode，
+        // 需要注意的是curEntry的lastNode是获取的parent的curNode，
+        // 如果每次进入的资源不同，就会每次都创建一个CtEntry，则parent为null，
+        // 所以curEntry.getLastNode()也为null
         if (curEntry != null && curEntry.getLastNode() != null) {
             return curEntry.getLastNode();
         } else {

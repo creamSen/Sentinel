@@ -23,6 +23,7 @@ import com.alibaba.csp.sentinel.context.Context;
  */
 public class DefaultProcessorSlotChain extends ProcessorSlotChain {
 
+    //创建插槽链首位插槽
     AbstractLinkedProcessorSlot<?> first = new AbstractLinkedProcessorSlot<Object>() {
 
         @Override
@@ -37,6 +38,8 @@ public class DefaultProcessorSlotChain extends ProcessorSlotChain {
         }
 
     };
+
+    //创建插槽链末位插槽，初始时首末相同
     AbstractLinkedProcessorSlot<?> end = first;
 
     @Override
@@ -50,6 +53,8 @@ public class DefaultProcessorSlotChain extends ProcessorSlotChain {
 
     @Override
     public void addLast(AbstractLinkedProcessorSlot<?> protocolProcessor) {
+        //添加插槽时，将该插槽设置到链的末尾，并将上一个插槽的next变量设置为当前插槽
+        //这样，插槽形成链式结构，每个插槽通过getNext都能获取到下一个插槽
         end.setNext(protocolProcessor);
         end = protocolProcessor;
     }

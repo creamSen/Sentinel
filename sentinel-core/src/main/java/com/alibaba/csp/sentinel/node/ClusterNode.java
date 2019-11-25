@@ -42,6 +42,8 @@ import com.alibaba.csp.sentinel.util.AssertUtil;
  * @author qinan.qn
  * @author jialiang.linjl
  */
+//该类存储资源的汇总运行时统计信息，包括rt、线程数、qps
+//相同资源全局范围内共享共同的ClusterNode
 public class ClusterNode extends StatisticNode {
 
     private final String name;

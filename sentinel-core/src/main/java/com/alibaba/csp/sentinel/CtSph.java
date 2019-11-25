@@ -116,7 +116,9 @@ public class CtSph implements Sph {
 
     private Entry entryWithPriority(ResourceWrapper resourceWrapper, int count, boolean prioritized, Object... args)
         throws BlockException {
+        //从线程中获取上下文
         Context context = ContextUtil.getContext();
+        //上下文的数量超过了阈值，直接返回凭证，不进行校验
         if (context instanceof NullContext) {
             // The {@link NullContext} indicates that the amount of context has exceeded the threshold,
             // so here init the entry only. No rule checking will be done.
@@ -125,26 +127,31 @@ public class CtSph implements Sph {
 
         if (context == null) {
             // Using default context.
-            context = InternalContextUtil.internalEnter(Constants.CONTEXT_DEFAULT_NAME);
+            //内部工具生成上下文
+            context = InternalContextUtil.internalEnter(Constants.CONTEXT_DEFAULT_NAME);//默认名称：sentinel_default_context
         }
 
         // Global switch is close, no rule checking will do.
+        //全局开关，如果关闭则直接返回凭证，不进行校验
         if (!Constants.ON) {
             return new CtEntry(resourceWrapper, null, context);
         }
 
+        //获取插槽链
         ProcessorSlot<Object> chain = lookProcessChain(resourceWrapper);
 
         /*
          * Means amount of resources (slot chain) exceeds {@link Constants.MAX_SLOT_CHAIN_SIZE},
          * so no rule checking will be done.
          */
+        //插槽链已达到最大限度，直接返回凭证，不进行校验
         if (chain == null) {
             return new CtEntry(resourceWrapper, null, context);
         }
 
         Entry e = new CtEntry(resourceWrapper, chain, context);
         try {
+            //执行插槽链first插槽，插槽链自动执行后续所有插槽
             chain.entry(context, resourceWrapper, null, count, prioritized, args);
         } catch (BlockException e1) {
             e.exit(count, args);
@@ -192,17 +199,21 @@ public class CtSph implements Sph {
      * @return {@link ProcessorSlotChain} of the resource
      */
     ProcessorSlot<Object> lookProcessChain(ResourceWrapper resourceWrapper) {
+
+        //根据资源名称和类型，从Map中获取处理器插槽链
         ProcessorSlotChain chain = chainMap.get(resourceWrapper);
         if (chain == null) {
             synchronized (LOCK) {
                 chain = chainMap.get(resourceWrapper);
                 if (chain == null) {
                     // Entry size limit.
+                    //超过最大数量，无法继续创建，直接返回null
                     if (chainMap.size() >= Constants.MAX_SLOT_CHAIN_SIZE) {
                         return null;
                     }
-
+                    //创建插槽链
                     chain = SlotChainProvider.newSlotChain();
+                    //将创建好的插槽链添加到Map中，资源名称和类型作为key
                     Map<ResourceWrapper, ProcessorSlotChain> newMap = new HashMap<ResourceWrapper, ProcessorSlotChain>(
                         chainMap.size() + 1);
                     newMap.putAll(chainMap);

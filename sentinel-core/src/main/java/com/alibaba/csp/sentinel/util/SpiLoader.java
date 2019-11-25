@@ -73,6 +73,8 @@ public final class SpiLoader {
         AssertUtil.notNull(defaultClass, "default SPI class cannot be null");
         try {
             String key = clazz.getName();
+
+            //Map缓存构造器接口的ServiceLoader
             // Not thread-safe, as it's expected to be resolved in a thread-safe context.
             ServiceLoader<T> serviceLoader = SERVICE_LOADER_MAP.get(key);
             if (serviceLoader == null) {
@@ -80,11 +82,13 @@ public final class SpiLoader {
                 SERVICE_LOADER_MAP.put(key, serviceLoader);
             }
 
+            //从ServiceLoader中获取构造器实现类，判断获取到的构造器不是默认的构造器，直接返回
             for (T instance : serviceLoader) {
                 if (instance.getClass() != defaultClass) {
                     return instance;
                 }
             }
+            //没有加载到自定义构造器，返回默认构造器
             return defaultClass.newInstance();
         } catch (Throwable t) {
             RecordLog.warn("[SpiLoader] ERROR: loadFirstInstanceOrDefault failed", t);

@@ -37,10 +37,13 @@ class CtEntry extends Entry {
     protected Context context;
 
     CtEntry(ResourceWrapper resourceWrapper, ProcessorSlot<Object> chain, Context context) {
+        //调用父类构造器
         super(resourceWrapper);
+        //设置插槽链，资源的保护进行
         this.chain = chain;
+        //设置上下文
         this.context = context;
-
+        //更新entry父子关系
         setUpEntryFor(context);
     }
 
@@ -49,10 +52,13 @@ class CtEntry extends Entry {
         if (context instanceof NullContext) {
             return;
         }
+        //获取context的当前的entry，并设为parent
         this.parent = context.getCurEntry();
         if (parent != null) {
+            //如果parent存在，并把parent的entry的child设为前的entry
             ((CtEntry)parent).child = this;
         }
+        //设置context的当前entry
         context.setCurEntry(this);
     }
 

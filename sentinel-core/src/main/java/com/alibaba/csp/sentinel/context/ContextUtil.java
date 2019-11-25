@@ -120,9 +120,11 @@ public class ContextUtil {
     protected static Context trueEnter(String name, String origin) {
         Context context = contextHolder.get();
         if (context == null) {
+            //从本地缓存map(name作为key)中根据name获取默认node
             Map<String, DefaultNode> localCacheNameMap = contextNameNodeMap;
             DefaultNode node = localCacheNameMap.get(name);
             if (node == null) {
+                //Map中存储的上下文名字数量超过了最大存储数量
                 if (localCacheNameMap.size() > Constants.MAX_CONTEXT_NAME_SIZE) {
                     setNullContext();
                     return NULL_CONTEXT;
@@ -135,10 +137,13 @@ public class ContextUtil {
                                 setNullContext();
                                 return NULL_CONTEXT;
                             } else {
+                                //创建链的入口节点，参数用 类型为IN字符串资源
                                 node = new EntranceNode(new StringResourceWrapper(name, EntryType.IN), null);
                                 // Add entrance node.
+                                //根节点添加入口节点
                                 Constants.ROOT.addChild(node);
 
+                                //将创建出的node添加到Map中，上下文名称作为key
                                 Map<String, DefaultNode> newMap = new HashMap<>(contextNameNodeMap.size() + 1);
                                 newMap.putAll(contextNameNodeMap);
                                 newMap.put(name, node);
